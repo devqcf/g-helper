@@ -24,5 +24,11 @@ jobs:
         languages: c#
     - name: Autobuild
       uses: github/codeql-action/autobuild@v4
+      with:
+        # Build the solution explicitly. The Xbox Game Bar widget (app/GameBar) is a
+        # separate UWP project that needs the UWP workload, which this runner does not
+        # have, and autobuild would otherwise try to pick it up and fail.
+        build-mode: autobuild
+        build-commands: dotnet build app/GHelper.sln
     - name: Analyze
       uses: github/codeql-action/analyze@v4

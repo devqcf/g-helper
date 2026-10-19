@@ -54,6 +54,14 @@ public static class HardwareControl
     public static bool readPower;
     public static bool readBattery;
 
+    /// <summary>
+    /// Set while a Game Bar widget is connected. The widget shows load, temperatures and
+    /// power as well as the overlay's own blocks, so the overlay has to collect those too -
+    /// otherwise the widget would show nothing whenever the overlay happened to be showing
+    /// only its FPS block, and a second poll per second would be needed to fill the gap.
+    /// </summary>
+    public static bool widgetConnected;
+
     static long lastUpdate;
 
     static bool isPZ13 = AppConfig.IsPZ13();
@@ -849,12 +857,21 @@ public static class HardwareControl
         ReadBatteryState();
     }
 
-    // Lightweight sensor read used by the overlay timer - skips battery health, WMI and design capacity
-    public static void ReadSensorsOverlay()
+    /// Lightweight sensor read used by the overlay timer - skips battery health, WMI and design capacity.
+    /// The optional flags override the static read* gates for this call only; the overlay relies on the
+    /// statics (which it sets from its own display preferences), while the Game Bar widget passes an
+    /// explicit set so the two never clobber each other's choices.
+    public static void ReadSensorsOverlay(bool? fans = null, bool? usage = null, bool? memory = null, bool? power = null, bool? battery = null)
     {
         if (Program.acpi is null) return;
 
-        if (readFans)
+        bool doFans = fans ?? readFans;
+        bool doUsage = usage ?? readUsage;
+        bool doMemory = memory ?? readMemory;
+        bool doPower = power ?? readPower;
+        bool doBattery = battery ?? readBattery;
+
+        if (doFans)
         {
             cpuFanRPM = Program.acpi.GetFan(AsusFan.CPU) * 100;
             gpuFanRPM = Program.acpi.GetFan(AsusFan.GPU) * 100;
@@ -868,7 +885,7 @@ public static class HardwareControl
         cpuTemp = GetCPUTemp();
         gpuTemp = GetGPUTemp();
 
-        if (readUsage)
+        if (doUsage)
         {
             cpuUsage = GetCPUUsage();
             try { gpuUsage = GpuControl?.GetGpuUse(); } catch { gpuUsage = null; }
@@ -881,7 +898,7 @@ public static class HardwareControl
             gpuUsage = null;
         }
 
-        if (readMemory)
+        if (doMemory)
         {
             var ram = GetRAMInfo();
             ramUsage = ram?.percent;
@@ -907,7 +924,7 @@ public static class HardwareControl
             vramUsedMb = null;
         }
 
-        if (readPower)
+        if (doPower)
         {
             InitCPUPowerAsync();
 
@@ -954,7 +971,7 @@ public static class HardwareControl
             gpuPower = null;
         }
 
-        if (readBattery) ReadBatteryState();
+        if (doBattery) ReadBatteryState();
     }
 
     public static double GetBatteryChargePercentage()

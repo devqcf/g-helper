@@ -193,7 +193,7 @@ namespace GHelper.Overlay
         private Task? _fpsTask;
         private volatile int _currentFps;
         private int _lastFgPid;
-        private bool _active;
+        private volatile bool _active;
         private bool _gameOnly;
         private bool _showNames;
         private bool _showFps, _showTemp, _showFans, _showChart, _showPower, _showUsage, _showRam, _showBattery;
@@ -1013,12 +1013,17 @@ namespace GHelper.Overlay
         }
 
         // Don't pull sensors for blocks that aren't drawn (power feeds both the power and chart blocks).
-        private void ApplySensorFlags()
+        // A connected Game Bar widget widens the set: it shows load, temperatures and power
+        // regardless of which blocks the overlay happens to be drawing, and this keeps the
+        // total at one poll per second.
+        public void ApplySensorFlags()
         {
-            HardwareControl.readFans   = _showFans;
-            HardwareControl.readUsage  = _showUsage;
-            HardwareControl.readMemory = _showRam;
-            HardwareControl.readPower  = _showPower || _showChart;
+            bool widget = HardwareControl.widgetConnected;
+
+            HardwareControl.readFans   = _showFans   || widget;
+            HardwareControl.readUsage  = _showUsage  || widget;
+            HardwareControl.readMemory = _showRam    || widget;
+            HardwareControl.readPower  = _showPower  || _showChart || widget;
             HardwareControl.readBattery = _showBattery && _onBattery;
         }
 
@@ -1058,6 +1063,14 @@ namespace GHelper.Overlay
             y = Math.Max(screen.Bounds.Top  + margin, Math.Min(y, screen.Bounds.Bottom - Height - margin));
             Location = new Point(x, y);
         }
+
+        /// <summary>True while the overlay timer is running. Consumers such as the
+        /// Game Bar widget bridge use this to avoid double-polling the ACPI sensors.</summary>
+        public bool IsActive => _active;
+
+        /// <summary>Last sampled FPS of the foreground game, or 0 when the ETW
+        /// monitor is not running (it is only started with the overlay).</summary>
+        public int CurrentFps => _currentFps;
 
         public void StartOverlay()
         {

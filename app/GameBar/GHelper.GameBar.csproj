@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Legacy (non SDK-style) project file.
+
+  Xbox Game Bar widgets must be MSIX-packaged UWP XAML apps, so this project deliberately
+  does NOT use the SDK-style format that GHelper.csproj uses - UWP requires the classic
+  Microsoft.Windows.UI.Xaml.CSharp.targets import at the bottom.
+
+  It is also kept out of GHelper.sln on purpose: the CI build (dotnet build app/GHelper.sln)
+  has no UWP workload and would fail on it. Open this project directly, or see README.md.
+-->
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
+    <ProjectGuid>{6C1A6E0B-2E9F-4E0E-9E2E-6C0B3A5F1D42}</ProjectGuid>
+    <OutputType>AppContainerExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>GHelper.GameBar</RootNamespace>
+    <AssemblyName>GHelper.GameBar</AssemblyName>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
+    <TargetPlatformVersion Condition=" '$(TargetPlatformVersion)' == '' ">10.0.22621.0</TargetPlatformVersion>
+    <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+    <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
+    <FileAlignment>512</FileAlignment>
+    <!--
+      Pinned deliberately. Shared/GameBarProtocol.cs is compiled into this project AND into
+      the modern .NET 10 desktop app, so it must stay inside the intersection of both. Without
+      a pin, a C# 8+ construct would compile here and only break under .NET Native.
+    -->
+    <LangVersion>7.3</LangVersion>
+    <!--
+      Bundle the .NET Core runtime into the package instead of depending on the
+      Microsoft.NET.CoreRuntime.2.2 / Microsoft.NET.CoreFramework.Debug.2.2 framework
+      packages being installed on the machine. Without this the manifest carries
+      PackageDependency entries for them, and a machine that lacks them - or a loose
+      "Add-AppxPackage -Register" deployment, which cannot resolve them - refuses to
+      install the widget.
+    -->
+    <UseAppLocalCoreFramework>true</UseAppLocalCoreFramework>
+    <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WindowsXamlEnableOverview>true</WindowsXamlEnableOverview>
+    <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
+    <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
+    <AppxSymbolPackageEnabled>False</AppxSymbolPackageEnabled>
+    <AppxBundle>Never</AppxBundle>
+    <GenerateTestArtifacts>False</GenerateTestArtifacts>
+    <!-- G-Helper itself is x64 only, and a widget is always hosted in-process on the
+         same architecture as the OS, so there is no point building arm32/arm64 here. -->
+    <AppxBundlePlatforms>x64</AppxBundlePlatforms>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+      <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
+    <NoWarn>;2008</NoWarn>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
+    <Optimize>true</Optimize>
+    <NoWarn>;2008</NoWarn>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+    <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="GHelperClient.cs" />
+    <Compile Include="GHelperWidget.xaml.cs">
+      <DependentUpon>GHelperWidget.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="GHelperSettingsWidget.xaml.cs">
+      <DependentUpon>GHelperSettingsWidget.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WidgetHost.cs" />
+    <Compile Include="WidgetLog.cs" />
+  </ItemGroup>
+
+  <!-- The wire protocol is shared verbatim with the desktop app so the two cannot drift. -->
+  <ItemGroup>
+    <Compile Include="..\Shared\GameBarProtocol.cs">
+      <Link>Shared\GameBarProtocol.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <AppxManifest Include="Package.appxmanifest">
+      <SubType>Designer</SubType>
+    </AppxManifest>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\Square150x150Logo.scale-100.png" />
+    <Content Include="Assets\Square44x44Logo.scale-100.png" />
+    <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
+    <Content Include="Assets\StoreLogo.scale-100.png" />
+    <Content Include="Assets\Wide310x150Logo.scale-100.png" />
+    <Content Include="Properties\Default.rd.xml" />
+  </ItemGroup>
+
+  <!-- Widget icons. Game Bar reads these from the folder named by the AppExtension
+       PublicFolder attribute ("GameBar"), i.e. GameBar\Icons. -->
+  <ItemGroup>
+    <Content Include="GameBar\Icons\icon.targetsize-16.png" />
+    <Content Include="GameBar\Icons\icon.targetsize-20.png" />
+    <Content Include="GameBar\Icons\icon.targetsize-24.png" />
+    <Content Include="GameBar\Icons\icon.targetsize-32.png" />
+    <Content Include="GameBar\Icons\icon.targetsize-44.png" />
+    <Content Include="GameBar\Icons\icon.targetsize-256.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Page Include="GHelperWidget.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="GHelperSettingsWidget.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Gaming.XboxGameBar">
+      <Version>7.3.2607010</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
+      <Version>6.2.15</Version>
+    </PackageReference>
+  </ItemGroup>
+
+  <!--
+    The Game Bar SDK ships as a .NET Native library, so the widget has to be built with the
+    .NET Native toolchain - a plain managed build throws BadImageFormatException the moment
+    XboxGameBarWidget is loaded, which happens during App construction.
+  -->
+  <PropertyGroup>
+    <UseDotNetNativeToolchain Condition="'$(Configuration)' == 'Debug'">true</UseDotNetNativeToolchain>
+  </PropertyGroup>
+
+  <!--
+    Works around a packaging bug in Microsoft's .NET Native toolchain packages.
+
+    runtime.win10-x64.microsoft.net.native.{compiler,sharedlibrary} 2.3.15-rel-2605-2102
+    register their framework appx with <Version>2.3.60521.0</Version>, but the appx files
+    they actually ship are version 2.3.60518.0. The manifest therefore ends up with
+
+        <PackageDependency Name="Microsoft.NET.Native.Runtime.2.3"
+                           MinVersion="2.3.60521.0" ... />
+
+    which no package on any feed satisfies - the 2.3.60518.0 appx is below the declared
+    minimum and a 2.3.60521.0 appx does not exist publicly. The widget then cannot be
+    installed at all:
+
+        0x80073CF3 ... it depends on a platform that cannot be found
+
+    The fix is to declare the version that is actually shipped. Matching on the file name
+    rather than on a path keeps this independent of where NuGet put the package.
+  -->
+  <Target Name="GHelperFixNativeFrameworkVersion" BeforeTargets="BeforeGenerateAppxManifest">
+    <ItemGroup>
+      <_GHelperNativeFrameworkRegistration
+          Include="@(AppxPackageRegistration)"
+          Condition="'%(AppxPackageRegistration.Filename)' == 'Microsoft.NET.Native.Runtime.2.3' Or
+                         '%(AppxPackageRegistration.Filename)' == 'Microsoft.NET.Native.Framework.2.3' Or
+                         '%(AppxPackageRegistration.Filename)' == 'Microsoft.NET.Native.Framework.Debug.2.3'" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <AppxPackageRegistration Update="@(_GHelperNativeFrameworkRegistration)">
+        <Version>2.3.60518.0</Version>
+      </AppxPackageRegistration>
+    </ItemGroup>
+  </Target>
+
+  <PropertyGroup>
+    <XboxGameBar-Platform Condition="'$(Platform)' == 'x86'">win32</XboxGameBar-Platform>
+    <XboxGameBar-Platform Condition="'$(Platform)' != 'x86'">$(Platform)</XboxGameBar-Platform>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
+    <VisualStudioVersion>14.0</VisualStudioVersion>
+  </PropertyGroup>
+
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
+</Project>

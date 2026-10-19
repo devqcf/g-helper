@@ -66,6 +66,7 @@ Small and lightweight Armoury Crate alternative for Asus laptops offering almost
 14. Asus Mice controls
 15. Mini-led multi-zone switch
 16. Flicker-free dimming and Visual Modes
+17. Xbox Game Bar widget: switch performance modes, GPU mode, refresh rate, Fn Lock, battery limit and (on ROG Ally) FPS cap and controller profile with `Win + G` - see [app/GameBar/README.md](https://github.com/seemdex/G-Helper/tree/main/app/GameBar)
 
 ### :gear: Automation
 - Performance Mode switching when on battery or plugged in

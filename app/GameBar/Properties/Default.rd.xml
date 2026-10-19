@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  .NET Native runtime directives.
+
+  Keep this minimal: every dynamic feature that is listed here is code that could otherwise
+  be trimmed away, and trimming failures only show up at runtime in a packaged widget,
+  which is awkward to diagnose. Nothing in this app relies on reflection over its own types.
+-->
+<Directives xmlns="http://schemas.microsoft.com/netfx/2013/01/metadata">
+  <Application>
+    <!-- ThemeResource lookups resolve brushes by name at runtime; without this the
+         ThemeDictionary brushes in the widget XAML can be trimmed. -->
+    <Assembly Name="*Application*" Dynamic="Required All" />
+  </Application>
+</Directives>

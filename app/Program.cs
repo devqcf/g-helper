@@ -221,6 +221,10 @@ namespace GHelper
             if (AppConfig.IsOverlay())
                 hardwareOverlay?.StartOverlay();
 
+            // Loopback bridge for the packaged Xbox Game Bar widget. Started last so it only
+            // comes up once every control the widget can drive is initialised.
+            GameBarServer.Start();
+
             Application.ApplicationExit += OnExit;
             Application.Run();
         }
@@ -467,6 +471,8 @@ namespace GHelper
 
         static void OnExit(object sender, EventArgs e)
         {
+            GameBarServer.Stop();
+
             if (trayIcon is not null)
             {
                 trayIcon.Visible = false;

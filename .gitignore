@@ -226,6 +226,11 @@ _pkginfo.txt
 *.appx
 *.appxbundle
 *.appxupload
+# Xbox Game Bar widget packaging (MSIX output and signing material)
+*.msix
+*.msixbundle
+*.msixupload
+*.cer
 
 # Visual Studio cache files
 # files ending in .cache can be ignored

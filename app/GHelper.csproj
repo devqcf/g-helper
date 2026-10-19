@@ -29,6 +29,21 @@
     <None Remove="logs\**" />
   </ItemGroup>
 
+  <!--
+    The Xbox Game Bar widget (app/GameBar) is a separate UWP project with its own build and
+    its own toolchain. This SDK-style project globs **/*.cs by default, so without these
+    removals it would compile the widget's sources too and fail on the duplicate assembly
+    attributes in its Properties/AssemblyInfo.cs.
+  -->
+  <ItemGroup>
+    <Compile Remove="GameBar\**" />
+    <EmbeddedResource Remove="GameBar\**" />
+    <None Remove="GameBar\**" />
+    <Page Remove="GameBar\**" />
+    <ApplicationDefinition Remove="GameBar\**" />
+    <Content Remove="GameBar\**" />
+  </ItemGroup>
+
 
   <ItemGroup>
     <Content Include="favicon.ico">

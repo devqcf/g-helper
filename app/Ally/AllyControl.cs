@@ -820,5 +820,86 @@ namespace GHelper.Ally
             }
         }
 
+        // ── Absolute setters ───────────────────────────────────────────────
+        // ToggleMode and ToggleFPSLimit cycle through their options, which is what a
+        // keyboard shortcut or a button wants. The Game Bar widget shows the current value
+        // and sends back an absolute one, so it needs these instead of a cycle.
+
+        /// <summary>Currently selected controller mode.</summary>
+        public static ControllerMode CurrentMode => _mode;
+
+        /// <summary>Controller modes offered to the widget, in cycle order.</summary>
+        public static readonly ControllerMode[] ControllerModeOptions =
+        {
+            ControllerMode.Auto,
+            ControllerMode.Gamepad,
+            ControllerMode.Mouse,
+            ControllerMode.Skip
+        };
+
+        /// <summary>Sets the controller mode to an absolute value rather than cycling.</summary>
+        public void SetModeDirect(ControllerMode mode)
+        {
+            if (_mode == mode) return;
+
+            SetMode(mode);
+        }
+
+        /// <summary>Frame caps offered by the widget. -1 means uncapped.</summary>
+        public static readonly int[] FpsLimitOptions = { -1, 30, 40, 45, 50, 60, 75, 90, 120, 240 };
+
+        /// <summary>Current FPS frame cap, or -1 when uncapped.</summary>
+        public static int CurrentFpsLimit => fpsLimit;
+
+        /// <summary>Whether the TDP is being driven automatically from the frame rate.</summary>
+        public static bool CurrentAutoTDP => autoTDP;
+
+        /// <summary>The TDP currently applied, in watts, or -1 when it has not been read yet.</summary>
+        public static int CurrentTdp => tdpCurrent;
+
+        /// <summary>Whether the controller uses the enhanced vibration profile.</summary>
+        public static bool VibrationEnhanced => AppConfig.Is("vibra_enhanced");
+
+        /// <summary>Turns the enhanced vibration profile on or off and applies it.</summary>
+        public static void SetVibrationEnhanced(bool enabled)
+        {
+            if (AppConfig.Is("vibra_enhanced") == enabled) return;
+
+            AppConfig.Set("vibra_enhanced", enabled ? 1 : 0);
+            SetVibrationMode();
+        }
+
+        /// <summary>Enables or disables the automatic TDP.</summary>
+        public void SetAutoTdp(bool enabled)
+        {
+            if (autoTDP == enabled) return;
+
+            ToggleAutoTDP();
+        }
+
+        /// <summary>Sets the FPS frame cap to an absolute value. Ignores values not offered by <see cref="FpsLimitOptions"/>.</summary>
+        public void SetFpsLimit(int limit)
+        {
+            if (limit == fpsLimit) return;
+
+            bool supported = false;
+            foreach (int option in FpsLimitOptions)
+            {
+                if (option == limit) { supported = true; break; }
+            }
+
+            if (!supported)
+            {
+                Logger.WriteLine($"FPS Limit {limit}: unsupported value");
+                return;
+            }
+
+            int result = amdControl.SetFPSLimit(limit);
+            fpsLimit = limit;
+            Logger.WriteLine($"FPS Limit {fpsLimit}: {result}");
+
+            settings.VisualiseFPSLimit(fpsLimit);
+        }
+
     }
 }

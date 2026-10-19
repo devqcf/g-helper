@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Integration test for the Game Bar bridge. See Program.cs for what this does and does
+    not cover.
+
+    It references the real GHelper project so GameBarServer is the shipped implementation,
+    and compiles the real widget-side client from its actual source file rather than a copy,
+    so the test cannot drift from what ships.
+  -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>annotations</Nullable>
+    <AssemblyName>BridgeTest</AssemblyName>
+    <RootNamespace>GHelper.GameBar.BridgeTest</RootNamespace>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <!-- The desktop app is a GUI app; never let it steal focus or flash a window here. -->
+    <DisableWinExeOutputInference>true</DisableWinExeOutputInference>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <!-- The real widget-side client, compiled from the file that actually ships.
+         GameBarProtocol is deliberately NOT linked in: it already ships inside
+         GHelper.dll, and having both would make every reference ambiguous (CS0436). -->
+    <Compile Include="..\..\GHelperClient.cs">
+      <Link>GHelperClient.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\GHelper.csproj" />
+  </ItemGroup>
+
+</Project>
